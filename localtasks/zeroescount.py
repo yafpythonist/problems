@@ -4,10 +4,9 @@ def count_factorial_trailing_zeroes(num):
     :return:
     """
     res = 0
-    power = 1
-    while 5 ** power < num:
-        res += num // 5 ** power
-        power += 1
+    while num >= 5:
+        res += num // 5
+        num //= 5
     return res
 
 
