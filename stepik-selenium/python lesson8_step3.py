@@ -4,7 +4,7 @@ import math
 from selenium.webdriver.support.ui import Select
 
 def calc(x):
-  return str(math.log(abs(12*math.sin(int(x)))))
+  return math.log(abs(12*math.sin(int(x))))
 
 
 try:
