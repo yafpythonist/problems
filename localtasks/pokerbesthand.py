@@ -42,6 +42,8 @@ class Card:
     def __repr__(self):
         return f"Card('{self.face}')"
 
+
+
     def get_representable_cards(self):
         if self.get_suitface() in self.WCSUITFACES:
             suits = self.SUITFACES - self.WCSUITFACES - self.REDWCSUITFACES - self.BLACKWCSUITFACES
@@ -55,7 +57,7 @@ class Card:
             ranks = self.RANKFACES - self.WCRANKFACES
         else:
             ranks = (self.get_rankface(),)
-        return set((Card(''.join(rs)) for rs in product(ranks, suits)))
+        return frozenset((Card(''.join(rs)) for rs in product(ranks, suits)))
 
 class Poker_hand:
     RANKVALUES = (None, ) + tuple("A23456789TJQKA")
@@ -69,6 +71,7 @@ class Poker_hand:
             for rcard in card.get_representable_cards():
                 if rcard not in self.cardset:
                     rankdict[rcard.get_rankface()].add(card)
+        print("rankdict", rankdict)
         for i in range(len(Poker_hand.RANKVALUES)-1, 4, -1):
             ranksubset = []
             for j in range(i-4,i+1):
@@ -85,10 +88,7 @@ class Poker_hand:
             for rcard in card.get_representable_cards():
                 if rcard not in self.cardset:
                     suitdict[rcard.get_suitface()].add(card)
-
-
         flushsuits = dict((k, suitdict[k]) for k in suitdict if len(suitdict[k])>=5)
-
         maxscore = 0
         maxflushes = {}
         for suit, fcardset in flushsuits.items():
@@ -98,8 +98,47 @@ class Poker_hand:
                 maxscore, maxflushes[suit] = suit_score, suit_cardset
             elif suit_score == maxscore:
                 maxflushes[suit] = suit_cardset
-
         return len(flushsuits) > 0, maxflushes
+
+    def major_4ofakinds(self):
+        rankdict = defaultdict(set)
+        for card in self.cardset:
+            for rcard in card.get_representable_cards():
+                if rcard not in self.cardset:
+                    rankdict[rcard.get_rankface()].add(card)
+        h4ofakind = set()
+        for i in range(len(Poker_hand.RANKVALUES) - 1, 1, -1):
+            if len(rankdict[Poker_hand.RANKVALUES[i]]) >= 4:
+                h4ofakind = rankdict[Poker_hand.RANKVALUES[i]]
+                break
+        setsof4cards = set((frozenset(h4c) for h4c in combinations(h4ofakind, 4)))
+        maxhcv = 0
+        maxsetof4card = set()
+        for setof4cards in setsof4cards:
+            hcv, setofhc = Poker_hand.get_hcs(self.cardset - setof4cards - set((svc for svc in self.cardset if svc.get_rankface() == Poker_hand.RANKVALUES[i])))
+            if hcv > maxhcv:
+                maxsetof4card.clear()
+                maxhcv = hcv
+                maxsetof4card.add((setof4cards, setofhc))
+            elif hcv == maxhcv:
+                maxsetof4card.add((setof4cards, setofhc))
+        return maxsetof4card, maxhcv
+        print("setsof4")
+        print(*setsof4cards)
+
+        return None, None
+
+    @staticmethod
+    def get_hcs(cardset):
+        rankdict = defaultdict(set)
+        for card in cardset:
+            for rcard in card.get_representable_cards():
+                if rcard not in cardset:
+                    rankdict[rcard.get_rankface()].add(card)
+        for i in range(len(Poker_hand.RANKVALUES) - 1, 4, -1):
+            if len(rankdict[Poker_hand.RANKVALUES[i]]) > 0:
+                return i, frozenset(rankdict[Poker_hand.RANKVALUES[i]])
+        return 0, frozenset()
 
     @staticmethod
     def score_sum(cardset):
@@ -117,8 +156,10 @@ class Poker_hand:
 
 
 
-c = set((Card(face) for face in "2S WR KD 3C 4C 5C WB WW".split()))
+c = set((Card(face) for face in "AS AH AD AC WR".split()))
 ph = Poker_hand(c)
+print(ph.major_4ofakinds())
 #print(Poker_hand.score_sum(c))
-print("ms", ph.major_straights())
-print("mf", ph.major_flushes())
+#print("ms", ph.major_straights())
+#print("mf", ph.major_flushes())
+#print("m4ak", ph.major_4ofakinds())
