@@ -66,6 +66,8 @@ def hand_rank(hand):
     elif flush(hand):
         return (5, ranks)
     elif straight(ranks):
+        if ranks == card_ranks("AW 2W 3W 4W 5W".split()):
+            return (4, COMMONRANKS.index("5"))
         return (4, max(ranks))
     elif kind(3, ranks):
         return (3, kind(3, ranks), ranks)
@@ -95,8 +97,7 @@ def straight(ranks):
 
     !!! Не все то, у чего сумма совпадает с суммой арифметической прогрессии есть арифметическая прогрессия
     """
-    return all((ranks[i - 1] - 1 == ranks[i] for i in range(1, len(ranks)))) or ranks == card_ranks(
-        "AW 2W 3W 4W 5W".split())
+    return ranks[0] - ranks[4] + 1 == 5 or ranks == card_ranks("AW 2W 3W 4W 5W".split())
 
 
 def kind(n, ranks):
